@@ -19,10 +19,11 @@ end
 
 loadmodule(mod_path .. "/uba_core.lua")
 loadmodule(mod_path .. "/uba_nodes.lua")
-loadmodule(mod_path .. "/uba_commands.lua")
+loadmodule(mod_path .. "/uba_register.lua")
 
 uba.arenas = {}
 uba.players = {}
+uba.edit = {}
 
 uba.load_arenas()
 

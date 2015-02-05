@@ -16,6 +16,10 @@ minetest.register_chatcommand("uba", {
 				end
 			elseif cmd[1] == "vote" then
 				local arena_name = uba.players[name]
+				if not arena_name then
+					minetest.chat_send_player(name,"*You are not in an arena")
+					return
+				end
 				uba.vote(arena_name,name)
 			elseif cmd[1] == "leave" then
 				if uba.players[name] then -- player is in arena
@@ -41,8 +45,8 @@ minetest.register_chatcommand("uba", {
 			elseif cmd[1] == "edit" then
 				if not minetest.check_player_privs(name, {uba=true}) then
 					minetest.chat_send_player(name,"*You don't have the privilege to do this !")
-				elseif not cmd[2] or not uba.arena_exists(cmd[2]) then
-				minetest.chat_send_player(name,"*Unknown arena !")
+				elseif not cmd[2] then
+				minetest.chat_send_player(name,"*Missing arena name!")
 				else 
 					uba.edit_arena(cmd[2],name)
 				end
@@ -57,3 +61,8 @@ minetest.register_chatcommand("uba", {
 		return true
 	end,
 })
+
+minetest.register_on_dieplayer(function(player)
+	local name = player:get_player_name()
+	uba.player_died(name)
+end)
