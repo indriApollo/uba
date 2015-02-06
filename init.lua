@@ -17,6 +17,7 @@ local loadmodule = function(path)
 	return dofile(path)
 end
 
+loadmodule(mod_path .. "/uba_inventory.lua")
 loadmodule(mod_path .. "/uba_core.lua")
 loadmodule(mod_path .. "/uba_nodes.lua")
 loadmodule(mod_path .. "/uba_register.lua")

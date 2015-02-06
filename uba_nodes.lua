@@ -59,4 +59,3 @@ local wall_node = uba.copy_table(minetest.registered_nodes["default:glass"])
 wall_node.description = "uba wall node, only removable with worldedit"
 wall_node.groups = {}
 minetest.register_node("uba:wall",wall_node)
-

@@ -177,10 +177,11 @@ end
 uba.put_player_in_arena = function(arena_name,name)
 	local player = minetest.get_player_by_name(name)
 	local inv = player:get_inventory()
+	uba.players[name] = {arena_name = arena_name}-- put the player in the active players table
+	uba.save_player_inventory(name)
 	inv:set_list("main", {}) -- empty main inventory
 	inv:set_list("craft", {}) -- empty craft inventory
 	uba.player_move(name,"freeze")
-	uba.players[name] = arena_name -- put the player in the active players table
 	uba.arenas[arena_name]["nplayers"] = uba.arenas[arena_name]["nplayers"] + 1 -- increment n players
 	local spawnpos = uba.arenas[arena_name]["slab_positions"][uba.arenas[arena_name]["nplayers"]]
 	player:setpos(spawnpos)
@@ -196,7 +197,7 @@ uba.start_game = function(arena_name)
 	-- unfreeze players
 	-- playername => arena_name
 	for k,v in pairs(uba.players) do
-		if v == arena_name then
+		if v.arena_name == arena_name then
 			uba.player_move(k,"unfreeze")
 			minetest.chat_send_player(k,"!!! Fight to the death !!!")
 		end
@@ -229,7 +230,7 @@ end
 
 uba.disable_arena = function(arena_name,name)
 	for k,v in pairs(uba.players) do -- Kill ALL players mouhahaha :D
-		if v == arena_name then
+		if v.arena_name == arena_name then
 			local player = get_player_by_name(k)
 			player:set_hp(0) -- kill player, will respawn in lobby
 		end
@@ -286,10 +287,11 @@ end
 
 uba.player_died = function(name)
 	local player = minetest.get_player_by_name(name)
-	local arena_name = uba.players[name]
+	local arena_name = uba.players[name]["arena_name"]
 	local inv = player:get_inventory()
 	inv:set_list("main", {}) -- empty main inventory
 	inv:set_list("craft", {}) -- empty craft inventory
+	uba.restore_player_inventory(name)
 	uba.players[name] = nil -- memory is freed
 	uba.player_move(name,"unfreeze")
 	uba.arenas[arena_name]["nplayers"] = uba.arenas[arena_name]["nplayers"] - 1 -- decrement n players
@@ -335,7 +337,7 @@ uba.end_game = function(arena_name)
 	-- we have a winner ! game must be ended
 	local lastplayer = " "
 	for k,v in pairs(uba.players) do
-		if v == arena_name then
+		if v.arena_name == arena_name then
 			lastplayer = k
 			break
 		end
@@ -344,12 +346,12 @@ uba.end_game = function(arena_name)
 		minetest.chat_send_all("~~ "..lastplayer.." won the game in arena "..arena_name.." ~~")
 		minetest.after(5,function()
 			minetest.get_player_by_name(lastplayer):set_hp(0) -- kill the last player
+			uba.arenas[arena_name]["status"] = "waiting" -- arena is waiting for new players
+		uba.arenas[arena_name]["votes"] = 0 -- reset the votes
+		uba.arenas[arena_name]["timer"] = os.time()
 		end)
 	end
 	uba.clear_chests(arena_name)
-	uba.arenas[arena_name]["status"] = "waiting" -- arena is waiting for new players
-	uba.arenas[arena_name]["votes"] = 0 -- reset the votes
-	uba.arenas[arena_name]["timer"] = os.time()
 end
 
 uba.edit_arena = function(arena_name,name)
@@ -362,7 +364,7 @@ uba.edit_arena = function(arena_name,name)
 	end
 	if uba.arenas[arena_name]["status"] ~= "edit" then
 		for k,v in pairs(uba.players) do -- Kill ALL players mouhahaha :D
-			if v == arena_name then
+			if v.arena_name == arena_name then
 				local player = minetest.get_player_by_name(k)
 				player:set_hp(0) -- kill player, will respawn in lobby
 			end
@@ -372,4 +374,56 @@ uba.edit_arena = function(arena_name,name)
 	uba.give_arena_items(name)
 	uba.edit[name] = arena_name
 	minetest.chat_send_player(name,"*Use /uba save to enable the arena when finished building")
+end
+
+uba.sanitize_string = function(s)
+	local sane_s = " "
+	for i=1,string.len(s) do
+		local ascii = string.byte (s, i)
+		local char = " "
+		if ascii >=65 and ascii <=90 then -- A -> Z
+			char = string.char(ascii)
+		elseif ascii >=97 and ascii <=122 then -- a -> z
+			char = string.char(ascii)
+		end
+		if sane_s == " " and char ~= " " then
+			sane_s = char
+		elseif char ~= " " then -- indesirable characters are omitted
+			sane_s = sane_s..char
+		end
+	end
+	return sane_s
+end
+
+uba.list_arenas = function(name)
+	for k,v in pairs(uba.arenas) do
+		local status = v.status
+		local nplayers = v.nplayers
+		local maxplayers = v.maxplayers
+		-- arena_name (nplayers/maxplayers) : status
+		minetest.chat_send_player(name,"-- "..k.." ("..nplayers.."/"..maxplayers..") : "..status)
+	end
+end
+
+uba.add_item_conf = function(arena_name,name,itemstring,count)
+	if minetest.registered_tools[itemstring] then
+		local conf_file = Settings(uba.mod_path.."/"..arena_name.."/items.conf")
+		conf_file:set(itemstring,count)
+		conf_file:write()
+		minetest.chat_send_player(name,"* "..itemstring.." = "..count.." added to "..arena_name.."/items.conf")
+	else 
+		minetest.chat_send_player(name,"*unknown item")
+	end
+end
+	
+uba.remove_item_conf = function(arena_name,name,itemstring)
+print("itemstring "..dump(itemstring))
+	local conf_file = Settings(uba.mod_path.."/"..arena_name.."/items.conf")
+	print("path "..dump(uba.mod_path.."/"..arena_name.."/items.conf"))
+	if conf_file:remove(itemstring) then
+		conf_file:write()
+		minetest.chat_send_player(name,"* "..itemstring.." removed from "..arena_name.."/items.conf")
+	else
+		minetest.chat_send_player(name,"*Could not remove unknown item")
+	end
 end
