@@ -1,7 +1,7 @@
 # [uba] Utimate Battle Arena
 
 This mod aims to become the utimate battle arena for Minetest servers.
-The mod offers the core functionalities of an arena which can be completed with additional mods via a global namespace.
+It offers the core functionalities of an arena which can be completed with additional mods via a global namespace.
 
 **The commands :**
 - Player commands :
@@ -17,7 +17,7 @@ The mod offers the core functionalities of an arena which can be completed with 
    - ```/uba save``` Save the arena you are editing. This also enables the arena.
    - ```/uba edit <arena_name>``` Edit an existing arena. Returns the arena nodes in the casters inventory. This will also kick all the players if used on an active arena.
    - ```/uba disable <arena_name>``` Disable the arena <arena_name>. This will also kick all the players if used on an active arena. The disable flag is set in arenas.conf
-   - ```/uba additem <arena_name> <itemstring> <count> Adds the given tool (itemstring) to the arena's items.conf with the given count.
+   - ```/uba additem <arena_name> <itemstring> <count>``` Adds the given tool (itemstring) to the arena's items.conf with the given count.
    - ```/uba rmitem <arena_name> <itemstring>``` Removes the given tool (itemstring) from the arena's items.conf /!\ Broken due to this Minetest [bug](https://github.com/minetest/minetest/issues/2264)
 
 **HOWTO**
@@ -29,7 +29,19 @@ Then select a region with worledit using ```//pos1``` and ```//pos2``` and execu
  
  **Notes**
  
- Chest: the special arena chest will be randomly refilled with the content of items.conf after each round. Theses chests can only be destroyed by their placer (most likely the admin)
- Slab: the special arena slabs are used as spawnpoints for the incoming players. These slabs can only be destroyed by their placer (most likely the admin)
- Wall: the arena wall can only be removed with worledit. This is to avoid that players can dig it and escape before the server checks for dig permission (lag)
- 
+- Chest: the special arena chest will be randomly refilled with the content of items.conf after each round. Theses chests can only be destroyed by their placer (most likely the admin)
+
+- Slab: the special arena slabs are used as spawnpoints for the incoming players. These slabs can only be destroyed by their placer (most likely the admin)
+
+- Wall: the arena wall can only be removed with worledit. This is to avoid that players can dig it and escape before the server checks for dig permission (lag)
+
+**Privileges :**
+- uba
+
+**Depends :**
+- default
+- worldedit
+- stairs
+
+**LICENSE**
+- lgpl 2.1
