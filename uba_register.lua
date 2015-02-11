@@ -1,6 +1,9 @@
 
+-- Register privilege
 minetest.register_privilege("uba", "Player can manage uba arenas.")
 
+
+-- Register chat commands
 minetest.register_chatcommand("uba", {
 	params = "<cmd> <arena_name> or additem <arena_name> <itemstring> <count> or rmitem <arena_name> <itemstring>",
 	description = "Send text to chat",
@@ -15,12 +18,7 @@ minetest.register_chatcommand("uba", {
 					minetest.chat_send_player(name,"*Unknown arena !")
 				end
 			elseif cmd[1] == "vote" then
-				local arena_name = uba.players[name]
-				if not arena_name then
-					minetest.chat_send_player(name,"*You are not in an arena")
-					return
-				end
-				uba.vote(arena_name,name)
+				uba.vote(name)
 			elseif cmd[1] == "leave" then
 				if uba.players[name] then -- player is in arena
 					local player = minetest.get_player_by_name(name)
@@ -89,6 +87,7 @@ minetest.register_chatcommand("uba", {
 	end,
 })
 
+-- Register player death callback
 minetest.register_on_dieplayer(function(player)
 	local name = player:get_player_name()
 	uba.player_died(name)

@@ -1,12 +1,18 @@
 -- uba
--- |-- arenas.conf
+-- |-- uba.conf (arena flag, wall_node_base, vote_timeout)
 -- \-- arena_name
---     |-- items.conf
+--     |-- items.conf (itemstring = count)
 --     \-- arena.uba
 -- 
--- uba.player[]
--- uba.arenas[]
--- uba.edit[]
+-- uba.player[name]
+--              iventory -> {main list}
+--              arena_name -> arena_name
+-- uba.arenas[arena_name]
+--              chest_positions -> {pos}
+--              slab_positions -> {pos}
+--              -> votes timer pos1 pos2 status maxplayers nplayers
+-- uba.edit[name]
+--              -> arena_name
 
 uba.initiate = function(arena_name,name)
 	local pos1 = worldedit.pos1[name]
@@ -36,8 +42,7 @@ uba.initiate = function(arena_name,name)
 	io.close(arena_file)
 
 	-- create walls
-	local wall_node = "uba:wall"
-	uba.createWall(pos1,pos2,wall_node)
+	uba.createWall(pos1,pos2)
 
 	-- give nodes to arena builder
 	uba.give_arena_items(name)
@@ -86,8 +91,9 @@ uba.action_spawnSlab = function(pos,action,name) -- add or remove
 	uba.arenas[arena_name]["maxplayers"] = maxplayers
 end
 
-uba.createWall = function(pos1,pos2,wall_node)
+uba.createWall = function(pos1,pos2)
 	-- create wall around the arena
+	local wall_node = "uba:wall"
 	local w_pos1 = vector.round(pos1)
 	local w_pos2 = vector.round(pos2)
 	w_pos1,w_pos2 =  worldedit.sort_pos(w_pos1, w_pos2)
@@ -243,13 +249,13 @@ uba.disable_arena = function(arena_name,name)
 end
 
 uba.load_arenas = function()
-	local conf_file = Settings(uba.mod_path.."/arenas.conf")
+	local conf_file = Settings(uba.mod_path.."/uba.conf")
 	local arenas_table = conf_file:to_table()
 	for arena_name,v in pairs(arenas_table) do
 		if v == "enabled" then
 			uba.load_arena(arena_name)
 		else
-			minetest.log("info","[uba] Arena "..arena_name.." not loaded, as set in arenas.conf")
+			minetest.log("info","[uba] Arena "..arena_name.." not loaded, as set in uba.conf")
 		end
 	end
 end
@@ -308,20 +314,33 @@ uba.save_arena = function(name)
 	local arena_data = uba.arenas[arena_name]
 	arena_file:write(minetest.serialize(arena_data))
 	io.close(arena_file)
-	local conf_file = Settings(uba.mod_path.."/arenas.conf")
+	local conf_file = Settings(uba.mod_path.."/uba.conf")
 	conf_file:set(arena_name,"enabled")
 	conf_file:write()
 	minetest.chat_send_player(name,"Arena "..arena_name.." saved with maxplayers = "..arena_data.maxplayers
 		.." and "..table.getn(uba.arenas[arena_name]["chest_positions"]).." chests")
 end
 
-uba.vote = function(arena_name,name)
+uba.vote = function(name)
+	local conf_file = Settings(uba.mod_path.."/uba.conf")
+	local VOTE_TIMEOUT = tonumber(conf_file:get("vote_timeout"))
+	if not VOTE_TIMEOUT or VOTE_TIMEOUT < 0 then
+		VOTE_TIMEOUT = 60
+		conf_file:set("vote_timeout",VOTE_TIMEOUT)
+		conf_file:write()
+	end
+	local arena_name = uba.players[name]["arena_name"]
+	if not arena_name then
+		minetest.chat_send_player(name,"*You are not in an arena")
+		return
+	end
+
 	local timediff = os.time() - uba.arenas[arena_name]["timer"]
 	local votes = uba.arenas[arena_name]["votes"]
 	local nplayers = uba.arenas[arena_name]["nplayers"]
 	if uba.arenas[arena_name]["status"] == "active" then
 		minetest.chat_send_player(name,arena_name.." : Game has already started")
-	elseif timediff < 60 or uba.arenas[arena_name][nplayers] == 1 then
+	elseif timediff < VOTE_TIMEOUT or uba.arenas[arena_name][nplayers] == 1 then
 		minetest.chat_send_player(name,arena_name.." : Waiting for more players to join")
 	else
 		votes = votes + 1
@@ -363,13 +382,13 @@ uba.edit_arena = function(arena_name,name)
 		Settings(uba.mod_path"/arena.conf"):set_key(arena_name,"enabled")
 	end
 	if uba.arenas[arena_name]["status"] ~= "edit" then
+		uba.arenas[arena_name]["status"] = "edit" -- players can no longer join the arena
 		for k,v in pairs(uba.players) do -- Kill ALL players mouhahaha :D
 			if v.arena_name == arena_name then
 				local player = minetest.get_player_by_name(k)
 				player:set_hp(0) -- kill player, will respawn in lobby
 			end
 		end
-		uba.arenas[arena_name]["status"] = "edit"
 	end
 	uba.give_arena_items(name)
 	uba.edit[name] = arena_name
@@ -377,6 +396,7 @@ uba.edit_arena = function(arena_name,name)
 end
 
 uba.sanitize_string = function(s)
+	-- A-Z a-z 0-9 allowed
 	local sane_s = " "
 	for i=1,string.len(s) do
 		local ascii = string.byte (s, i)
@@ -417,9 +437,7 @@ uba.add_item_conf = function(arena_name,name,itemstring,count)
 end
 	
 uba.remove_item_conf = function(arena_name,name,itemstring)
-print("itemstring "..dump(itemstring))
 	local conf_file = Settings(uba.mod_path.."/"..arena_name.."/items.conf")
-	print("path "..dump(uba.mod_path.."/"..arena_name.."/items.conf"))
 	if conf_file:remove(itemstring) then
 		conf_file:write()
 		minetest.chat_send_player(name,"* "..itemstring.." removed from "..arena_name.."/items.conf")

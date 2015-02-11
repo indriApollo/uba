@@ -55,7 +55,15 @@ new_chest.after_dig_node = function(pos, oldnode, oldmetadata, digger)
 end
 minetest.register_node("uba:chest",new_chest)
 
-local wall_node = uba.copy_table(minetest.registered_nodes["default:glass"])
+-- register the wall_node
+local conf_file = Settings(uba.mod_path.."/uba.conf")
+local wall_node_base = conf_file:get("wall_node_base")
+if not wall_node_base then
+	wall_node_base = "default:glass"
+	conf_file:set("wall_node_base",wall_node_base)
+	conf_file:write()
+end
+local wall_node = uba.copy_table(minetest.registered_nodes[wall_node_base])
 wall_node.description = "uba wall node, only removable with worldedit"
 wall_node.groups = {}
 minetest.register_node("uba:wall",wall_node)
