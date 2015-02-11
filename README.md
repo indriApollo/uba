@@ -29,7 +29,7 @@ Then select a region with worledit using ```//pos1``` and ```//pos2``` and execu
  
  **Notes**
  
-- Chest: the special arena chest will be randomly refilled with the content of items.conf after each round. Theses chests can only be destroyed by their placer (most likely the admin)
+- Chest: the special arena chest will be randomly refilled with the content of items.conf after each round. These chests can only be destroyed by their placer (most likely the admin)
 
 - Slab: the special arena slabs are used as spawnpoints for the incoming players. These slabs can only be destroyed by their placer (most likely the admin)
 
@@ -43,5 +43,5 @@ Then select a region with worledit using ```//pos1``` and ```//pos2``` and execu
 - worldedit
 - stairs
 
-**LICENSE**
+**LICENCE**
 - lgpl 2.1
