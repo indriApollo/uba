@@ -9,7 +9,7 @@ It offers the core functionalities of an arena which can be completed with addit
   - ```/uba join <arena_name>``` Join the arena <arena_name>
   - ```/uba leave``` Leave the arena you are playing in. The player can leave at any time.
   - ```/uba vote``` The battle won't start until the arena is full. The players can vote to start earlier. The votes are available 60 secs after the opening of the arena.
-  - ```/uba list``` Returns a list of all the arenas with their name, number of players ans status
+  - ```/uba list``` Returns a list of all the arenas with their name, number of players and status
 
 - Admin commands (needs the 'uba' privilege) :
 
