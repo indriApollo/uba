@@ -35,6 +35,8 @@ Then select a region with worledit using ```//pos1``` and ```//pos2``` and execu
 
 - Wall: the arena wall can only be removed with worledit. This is to avoid that players can dig it and escape before the server checks for dig permission (lag)
 
+- Inventory: the player's inventories are cleared when joining an arena to avoid cheating. These are restored at the end of a round or when the player leaves.
+
 **Privileges :**
 - uba
 
