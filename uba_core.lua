@@ -53,6 +53,10 @@ end
 
 uba.action_chest = function(pos,action,name) -- add or remove
 	local arena_name = uba.edit[name]
+	if not arena_name then
+		minetest.chat_send_player(name,"*You can only place these while editing an arena !")
+		return false
+	end
 	-- save position of chests
 	local chest_positions = uba.arenas[arena_name]["chest_positions"]
 	if action == "add" then
@@ -67,10 +71,15 @@ uba.action_chest = function(pos,action,name) -- add or remove
 		end
 	end
 	uba.arenas[arena_name]["chest_positions"] = chest_positions
+	return true
 end
 
 uba.action_spawnSlab = function(pos,action,name) -- add or remove
 	local arena_name = uba.edit[name]
+	if not arena_name then
+		minetest.chat_send_player(name,"*You can only place these while editing an arena !")
+		return false
+	end
 	-- save position of slabs
 	local slab_positions = uba.arenas[arena_name]["slab_positions"]
 	local maxplayers = uba.arenas[arena_name]["maxplayers"]
@@ -89,6 +98,7 @@ uba.action_spawnSlab = function(pos,action,name) -- add or remove
 	end
 	uba.arenas[arena_name]["slab_positions"] = slab_positions
 	uba.arenas[arena_name]["maxplayers"] = maxplayers
+	return true
 end
 
 uba.createWall = function(pos1,pos2)

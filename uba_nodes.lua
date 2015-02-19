@@ -12,7 +12,10 @@ local new_slab = uba.copy_table(minetest.registered_nodes["stairs:slab_stonebric
 new_slab.description = "uba spawn slab"
 new_slab.after_place_node = function(pos, placer, itemstack, pointed_thing)
 	local name = placer:get_player_name()
-	uba.action_spawnSlab(pos,"add",name)
+	if not uba.action_spawnSlab(pos,"add",name) then
+		minetest.remove_node(pos)
+		itemstack:clear() -- slab is cleared from inventory
+	end
 	return itemstack
 end
 new_slab.can_dig = function(pos, player)
@@ -35,7 +38,10 @@ local new_chest = uba.copy_table(minetest.registered_nodes["default:chest"])
 new_chest.description = "uba chest"
 new_chest.after_place_node = function(pos, placer, itemstack, pointed_thing)
 	local name = placer:get_player_name()
-	uba.action_chest(pos,"add",name)
+	if not uba.action_chest(pos,"add",name) then
+		minetest.remove_node(pos)
+		itemstack:clear() -- chest is cleared from inventory
+	end
 	return itemstack
 end
 new_chest.can_dig = function(pos, player)
