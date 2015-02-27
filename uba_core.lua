@@ -303,16 +303,18 @@ end
 
 uba.player_died = function(name)
 	local player = minetest.get_player_by_name(name)
-	local arena_name = uba.players[name]["arena_name"]
-	local inv = player:get_inventory()
-	inv:set_list("main", {}) -- empty main inventory
-	inv:set_list("craft", {}) -- empty craft inventory
-	uba.restore_player_inventory(name)
-	uba.players[name] = nil -- memory is freed
-	uba.player_move(name,"unfreeze")
-	uba.arenas[arena_name]["nplayers"] = uba.arenas[arena_name]["nplayers"] - 1 -- decrement n players
-	if uba.arenas[arena_name]["nplayers"] <= 1 then
-		uba.end_game(arena_name)
+	if uba.players[name] then -- player died in an arena
+		local arena_name = uba.players[name]["arena_name"]
+		local inv = player:get_inventory()
+		inv:set_list("main", {}) -- empty main inventory
+		inv:set_list("craft", {}) -- empty craft inventory
+		uba.restore_player_inventory(name)
+		uba.players[name] = nil -- memory is freed
+		uba.player_move(name,"unfreeze")
+		uba.arenas[arena_name]["nplayers"] = uba.arenas[arena_name]["nplayers"] - 1 -- decrement n players
+		if uba.arenas[arena_name]["nplayers"] <= 1 then
+			uba.end_game(arena_name)
+		end
 	end
 end
 
